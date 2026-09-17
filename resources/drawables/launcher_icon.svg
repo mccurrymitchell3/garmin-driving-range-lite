@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- Dark Circular Background for Garmin App Launcher -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1b2e1b"/>
+      <stop offset="100%" stop-color="#0a0f0a"/>
+    </radialGradient>
+
+    <!-- Chrome/Steel Shaft Gradient -->
+    <linearGradient id="shaftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e6e6e6"/>
+      <stop offset="50%" stop-color="#999999"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+
+    <!-- Metallic Carbon Driver Head Gradient -->
+    <linearGradient id="driverBody" x1="20%" y1="20%" x2="80%" y2="80%">
+      <stop offset="0%" stop-color="#3a3d40"/>
+      <stop offset="50%" stop-color="#181a1b"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+
+    <!-- Neon Green Accent Line (Pro/Lite Styling) -->
+    <linearGradient id="neonAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00FF66"/>
+      <stop offset="100%" stop-color="#00CC44"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Circular Watch Icon Base -->
+  <circle cx="64" cy="64" r="60" fill="url(#bgGlow)" stroke="#00FF66" stroke-width="2.5"/>
+
+  <!-- Club Shaft extending out of Upper Right -->
+  <path d="M 52 50 L 115 -10" stroke="url(#shaftGrad)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M 52 50 L 115 -10" stroke="#000000" stroke-width="11" stroke-linecap="round" opacity="0.3"/>
+
+  <!-- Hosel Connection -->
+  <rect x="48" y="44" width="10" height="12" rx="2" fill="#111111" stroke="#000000" stroke-width="2" transform="rotate(-40 53 50)"/>
+
+  <!-- Main Driver Head (Coming towards foreground) -->
+  <g>
+    <!-- Club Head Body -->
+    <path d="M 22 88 
+             C 12 70, 25 42, 54 40 
+             C 80 38, 98 52, 102 70 
+             C 106 88, 86 104, 58 106 
+             C 32 108, 25 98, 22 88 Z" 
+          fill="url(#driverBody)" 
+          stroke="#000000" 
+          stroke-width="5" 
+          stroke-linejoin="round"/>
+
+    <!-- Cartoon High-Contrast Face Plate (Forged Titanium Face) -->
+    <path d="M 26 84 
+             C 22 72, 32 50, 56 46 
+             C 74 43, 86 52, 88 64 
+             C 90 76, 72 88, 52 90 
+             C 36 92, 28 90, 26 84 Z" 
+          fill="#2a2d30" 
+          stroke="#000000" 
+          stroke-width="3"/>
+
+    <!-- Driver Face Score Lines (Grooves) -->
+    <path d="M 36 62 L 72 56" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 34 70 L 76 63" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 36 78 L 72 70" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+
+    <!-- Cartoon Pop Highlight (Glint) -->
+    <path d="M 42 46 C 58 43, 76 49, 82 56" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Dynamic Neon Speed Stripe across Sole -->
+    <path d="M 28 88 C 42 100, 70 102, 94 80" fill="none" stroke="url(#neonAccent)" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

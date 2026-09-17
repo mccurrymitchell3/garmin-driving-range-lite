@@ -1,0 +1,24 @@
+# Garmin Connect IQ build outputs
+bin/
+*.prg
+*.iq
+*.debug.xml
+*.mir
+*.mbc
+
+# Private signing keys
+developer_key
+*.der
+*.key
+*.pem
+
+# Local SDK/editor state
+.vscode/
+.idea/
+
+# macOS metadata
+.DS_Store
+
+# Temporary files
+tmp/
+*.log
