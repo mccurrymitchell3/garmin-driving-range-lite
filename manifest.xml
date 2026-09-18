@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
     <!-- Watch app entry point and minimum SDK supported by this lite release. -->
-    <iq:application id="8e5dec39-26d6-4bd4-bbdf-e2877da66ac6" type="watch-app" name="@Strings.AppName" entry="RangeApp" launcherIcon="@Drawables.LauncherIcon" minSdkVersion="3.2.0">
+    <iq:application id="179e0db0-ebe3-4f14-8f03-f8cd0b559e9c" type="watch-app" name="@Strings.AppName" entry="RangeApp" launcherIcon="@Drawables.LauncherIcon" minSdkVersion="3.2.0">
         <!-- Devices exported for the public Connect IQ Store package. -->
         <iq:products>
             <iq:product id="enduro3"/>
