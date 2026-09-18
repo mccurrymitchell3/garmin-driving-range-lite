@@ -5,7 +5,7 @@ file.
 
 The project uses [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] - 2026-09-17
+## [1.0.0] - Unreleased
 
 ### Added
 
@@ -14,7 +14,8 @@ The project uses [Semantic Versioning](https://semver.org/).
 - Automatic swing counting using accelerometer data.
 - Manual swing-count adjustment using the watch's Up and Down buttons.
 - Pause, resume, save, and discard controls.
-- Custom FIT developer fields for the final swing count.
+- Garmin Connect integration with a cumulative swing-count chart and final
+  swing count in the activity summary.
 - Five-page post-activity summary for swings, calories, heart rate, training
   effect, and duration.
 - Support for selected Garmin Forerunner, Fenix, Epix, Enduro, Instinct, Venu,

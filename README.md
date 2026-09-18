@@ -18,8 +18,8 @@ simple sensor-based swing counting.
   start/resume to avoid startup sensor noise.
 - Lets the user adjust swings manually with `Up` and `Down`.
 - Uses `Start`/`Enter`/`Menu` to pause, resume, save, or discard.
-- Saves a custom FIT developer field named `Swing Count` on record and session
-  messages.
+- Adds a cumulative swing-count chart and final swing total to the synced
+  activity in Garmin Connect.
 - Shows a five-page saved-activity recap for swings, calories, heart rate,
   training effect, and duration.
 
@@ -46,11 +46,30 @@ the activity so the session is not accidentally interrupted.
   <img src="img/Driving_Range_Cover_Image.png" alt="Driving Range Lite Connect IQ store artwork" width="380">
 </p>
 
+### Garmin Connect
+
+Saved activities include the final swing count in the Connect IQ stats section
+and a chart showing how the count changed during the session.
+
+<p align="center">
+  <img src="img/Garmin_Connect_Activity_Stats.png" alt="Final swing count in Garmin Connect activity stats" width="300">
+  &nbsp;&nbsp;
+  <img src="img/Garmin_Connect_Activity_Charts.png" alt="Cumulative swing-count chart in Garmin Connect" width="300">
+</p>
+
+Activities can also sync from Garmin Connect to connected services such as
+Strava.
+
+<p align="center">
+  <img src="img/Strava_Activity.png" alt="Driving Range Lite golf activity synced to Strava" width="300">
+</p>
+
 ## Project Layout
 
 - `manifest.xml`: Connect IQ app metadata, supported devices, and permissions.
 - `monkey.jungle`: Garmin project file.
 - `img/`: screenshots and artwork used by this README and the store listing.
+- `resources/fitfields.xml`: Garmin Connect chart and activity-summary metadata.
 - `resources/`: app strings, drawables, and launcher icon.
 - `source/RangeApp.mc`: app entry point and lifecycle bridge.
 - `source/RangeView.mc`: activity recording, sensors, FIT fields, and main UI.

@@ -1,4 +1,8 @@
 <resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <!-- Display name shown by compatible Garmin devices. -->
     <string id="AppName">Driving Range</string>
+
+    <!-- Labels used by Garmin Connect for contributed FIT fields. -->
+    <string id="SwingCountLabel">Swing Count</string>
+    <string id="SwingCountUnits">swings</string>
 </resources>

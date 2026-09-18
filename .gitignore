@@ -12,6 +12,9 @@ developer_key
 *.key
 *.pem
 
+# Local Garmin beta listing configuration
+manifest-beta.xml
+
 # Local SDK/editor state
 .vscode/
 .idea/

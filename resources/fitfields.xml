@@ -1,0 +1,20 @@
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <!-- Field IDs must match the IDs passed to Session.createField(). -->
+    <fitContributions>
+        <fitField id="0"
+                  displayInChart="true"
+                  sortOrder="0"
+                  precision="0"
+                  chartTitle="@Strings.SwingCountLabel"
+                  dataLabel="@Strings.SwingCountLabel"
+                  unitLabel="@Strings.SwingCountUnits"
+                  fillColor="#34C759" />
+
+        <fitField id="1"
+                  displayInActivitySummary="true"
+                  sortOrder="1"
+                  precision="0"
+                  dataLabel="@Strings.SwingCountLabel"
+                  unitLabel="@Strings.SwingCountUnits" />
+    </fitContributions>
+</resources>
