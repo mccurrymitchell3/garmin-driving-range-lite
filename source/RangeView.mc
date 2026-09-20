@@ -114,7 +114,7 @@ class RangeView extends WatchUi.View {
     function startTimer() as Void {
         if (_timer == null) {
             _timer = new Timer.Timer();
-            _timer.start(method(:onTimer), 100, true);
+            _timer.start(method(:onTimer), 500, true);
         }
     }
 
@@ -133,6 +133,7 @@ class RangeView extends WatchUi.View {
         // the on-screen timer resumes from the same value.
         _elapsedBeforePause = getElapsedSeconds();
         _isPaused = true;
+        stopSensorDataListener();
         stopTimer();
 
         if ((_session != null) && _session.isRecording()) {
@@ -158,6 +159,7 @@ class RangeView extends WatchUi.View {
         }
 
         writeFitFields();
+        startSensorDataListener();
         startTimer();
         WatchUi.requestUpdate();
     }
@@ -167,6 +169,7 @@ class RangeView extends WatchUi.View {
             return;
         }
 
+        stopSensorDataListener();
         stopTimer();
 
         var session = _session;
@@ -192,6 +195,7 @@ class RangeView extends WatchUi.View {
             return;
         }
 
+        stopSensorDataListener();
         stopTimer();
 
         if (_session != null) {
@@ -256,9 +260,79 @@ class RangeView extends WatchUi.View {
     }
 
     function onTimer() as Void {
-        readSensors();
+        readActivitySensors();
         writeFitFields();
         WatchUi.requestUpdate();
+    }
+
+    function startSensorDataListener() as Void {
+        // Garmin delivers high-frequency accelerometer samples in batches.
+        // Request the fastest rate supported by this device, capped at 100 Hz.
+        var sampleRate = Sensor.getMaxSampleRateForSensorType(:accelerometer);
+        if (sampleRate > 100) {
+            sampleRate = 100;
+        }
+
+        if (sampleRate <= 0) {
+            return;
+        }
+
+        Sensor.registerSensorDataListener(method(:onSensorData), {
+            :period => 1,
+            :accelerometer => {
+                :enabled => true,
+                :sampleRate => sampleRate
+            }
+        });
+    }
+
+    function stopSensorDataListener() as Void {
+        Sensor.unregisterSensorDataListener();
+    }
+
+    function onSensorData(sensorData as Sensor.SensorData) as Void {
+        if (_isPaused || _isFinished || (sensorData.accelerometerData == null)) {
+            return;
+        }
+
+        var accel = sensorData.accelerometerData;
+        var xSamples = accel.x;
+        var ySamples = accel.y;
+        var zSamples = accel.z;
+
+        if ((xSamples == null) || (ySamples == null) || (zSamples == null)) {
+            return;
+        }
+
+        var count = xSamples.size();
+        if (ySamples.size() < count) {
+            count = ySamples.size();
+        }
+        if (zSamples.size() < count) {
+            count = zSamples.size();
+        }
+
+        for (var i = 0; i < count; i++) {
+            processAccelerationSample(xSamples[i], ySamples[i], zSamples[i]);
+        }
+    }
+
+    function processAccelerationSample(x as Number, y as Number, z as Number) as Void {
+        var mag = Math.sqrt((x * x) + (y * y) + (z * z));
+        var now = System.getTimer();
+
+        if (now < _autoDetectReadyAt) {
+            return;
+        }
+
+        // Keep the existing peak threshold and lockout algorithm unchanged;
+        // only the input sampling frequency changes.
+        if ((mag > SWING_THRESHOLD) && ((now - _lastSwingTime) > SWING_LOCKOUT_MS)) {
+            _lastSwingTime = now;
+            _swingCount++;
+            writeFitFields();
+            WatchUi.requestUpdate();
+        }
     }
 
     function loadHeartRateZones() as Void {
@@ -269,7 +343,7 @@ class RangeView extends WatchUi.View {
         }
     }
 
-    function readSensors() as Void {
+    function readActivitySensors() as Void {
         var info = Sensor.getInfo();
         var activityInfo = Activity.getActivityInfo();
 
@@ -302,29 +376,6 @@ class RangeView extends WatchUi.View {
             _calories = activityInfo.calories as Number;
         }
 
-        if ((info has :accel) && (info.accel != null)) {
-            var accel = info.accel as Array<Float>;
-
-            if (accel.size() >= 3) {
-                var x = accel[0];
-                var y = accel[1];
-                var z = accel[2];
-                var mag = Math.sqrt((x * x) + (y * y) + (z * z));
-
-                var now = System.getTimer();
-                if (now < _autoDetectReadyAt) {
-                    return;
-                }
-
-                // Count high-magnitude acceleration spikes as swings, then
-                // ignore nearby samples until the lockout window has passed.
-                if ((mag > SWING_THRESHOLD) && ((now - _lastSwingTime) > SWING_LOCKOUT_MS)) {
-                    _lastSwingTime = now;
-                    _swingCount++;
-                    writeFitFields();
-                }
-            }
-        }
     }
 
     function createFitFields() as Void {
