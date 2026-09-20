@@ -114,7 +114,7 @@ class RangeView extends WatchUi.View {
     function startTimer() as Void {
         if (_timer == null) {
             _timer = new Timer.Timer();
-            _timer.start(method(:onTimer), 500, true);
+            _timer.start(method(:onTimer), 100, true);
         }
     }
 
