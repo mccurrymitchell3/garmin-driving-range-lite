@@ -5,6 +5,20 @@ file.
 
 The project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Swing detection now consumes Garmin's high-frequency accelerometer batches at
+  the fastest device-supported sample rate, capped at 100 Hz, instead of polling
+  a single accelerometer reading from the UI timer.
+- The 500 ms UI/activity timer remains separate from high-frequency swing
+  sampling so display, heart-rate, calorie, and FIT refresh work does not run at
+  the accelerometer sample rate.
+- The existing swing magnitude threshold, 1.5-second lockout, and 3-second
+  startup/resume warmup remain unchanged so sampling frequency can be evaluated
+  independently.
+
 ## [1.0.0] - 2026-09-18
 
 ### Added
