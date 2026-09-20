@@ -108,6 +108,7 @@ class RangeView extends WatchUi.View {
         }
 
         writeFitFields();
+        startSensorDataListener();
         startTimer();
     }
 
