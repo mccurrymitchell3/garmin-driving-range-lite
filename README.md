@@ -14,8 +14,9 @@ simple sensor-based swing counting.
 
 - Starts a golf FIT activity when the app opens.
 - Tracks elapsed time, heart rate, swing count, and Garmin activity calories.
-- Detects swings from accelerometer peaks with a short warmup period after
-  start/resume to avoid startup sensor noise.
+- Detects swings from high-frequency accelerometer samples using the fastest
+  rate supported by the device, capped at 100 Hz, with a short warmup period
+  after start/resume to avoid startup sensor noise.
 - Lets the user adjust swings manually with `Up` and `Down`.
 - Uses `Start`/`Enter`/`Menu` to pause, resume, save, or discard.
 - Adds a cumulative swing-count chart and final swing total to the synced
@@ -72,7 +73,8 @@ Strava.
 - `resources/fitfields.xml`: Garmin Connect chart and activity-summary metadata.
 - `resources/`: app strings, drawables, and launcher icon.
 - `source/RangeApp.mc`: app entry point and lifecycle bridge.
-- `source/RangeView.mc`: activity recording, sensors, FIT fields, and main UI.
+- `source/RangeView.mc`: activity recording, high-frequency accelerometer swing
+  detection, FIT fields, and main UI.
 - `source/RangeDelegate.mc`: in-activity input handling.
 - `source/RangeMenuDelegate.mc`: pause menu actions.
 - `source/RangeSummaryView.mc`: saved-activity recap pages.
