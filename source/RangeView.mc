@@ -5,6 +5,7 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
 import Toybox.Sensor;
+import Toybox.SensorLogging;
 import Toybox.System;
 import Toybox.Time;
 import Toybox.Timer;
@@ -21,10 +22,13 @@ class RangeView extends WatchUi.View {
     // FIT developer field numbers must be stable once public FIT files exist.
     private const FIT_FIELD_SWING_COUNT_RECORD = 0;
     private const FIT_FIELD_SWING_COUNT_SESSION = 1;
+    private const FIT_FIELD_LAST_SWING_TIMESTAMP = 2;
 
     private var _session as Session?;
     private var _swingCountRecordField as Field?;
     private var _swingCountSessionField as Field?;
+    private var _lastSwingTimestampField as Field?;
+    private var _sensorLogger;
     private var _timer as Timer.Timer?;
     private var _startTime as Moment?;
     private var _heartRate as Number;
@@ -47,6 +51,8 @@ class RangeView extends WatchUi.View {
         _session = null;
         _swingCountRecordField = null;
         _swingCountSessionField = null;
+        _lastSwingTimestampField = null;
+        _sensorLogger = null;
         _timer = null;
         _startTime = null;
         _heartRate = 0;
@@ -98,11 +104,28 @@ class RangeView extends WatchUi.View {
         // ActivityRecording may not exist on every API/runtime, so guard it
         // before creating the FIT session.
         if ((Toybox has :ActivityRecording) && (_session == null)) {
-            _session = ActivityRecording.createSession({
+            // SensorLogger persists raw accelerometer data in the activity FIT
+            // file on devices that support Garmin's SensorLogging module.
+            if (Toybox has :SensorLogging) {
+                _sensorLogger = new SensorLogging.SensorLogger({
+                    :accelerometer => {
+                        :enabled => true
+                    },
+                    :synchronous => false
+                });
+            }
+
+            var sessionOptions = {
                 :name => "Range",
                 :sport => Activity.SPORT_GOLF,
                 :subSport => Activity.SUB_SPORT_GENERIC
-            });
+            };
+
+            if (_sensorLogger != null) {
+                sessionOptions[:sensorLogger] = _sensorLogger;
+            }
+
+            _session = ActivityRecording.createSession(sessionOptions);
             _session.start();
             createFitFields();
         }
@@ -357,6 +380,12 @@ class RangeView extends WatchUi.View {
         if ((mag > SWING_THRESHOLD) && ((now - _lastSwingTime) > SWING_LOCKOUT_MS)) {
             _lastSwingTime = now;
             _swingCount++;
+            if (_lastSwingTimestampField != null) {
+                // Persist the exact high-frequency sample timestamp that caused
+                // the detector to count this swing. The FIT record itself may
+                // be written later, but the stored value remains the trigger time.
+                _lastSwingTimestampField.setData(sampleTimestamp as Object);
+            }
             writeFitFields();
             WatchUi.requestUpdate();
             return true;
@@ -431,6 +460,17 @@ class RangeView extends WatchUi.View {
                     {:mesgType => FitContributor.MESG_TYPE_SESSION, :units => "swings"}
                 );
             }
+
+            // Debug marker used to correlate an automatic count with the raw
+            // accelerometer stream after exporting the original FIT file.
+            if (_lastSwingTimestampField == null) {
+                _lastSwingTimestampField = session.createField(
+                    "Last Swing Sample Timestamp",
+                    FIT_FIELD_LAST_SWING_TIMESTAMP,
+                    FitContributor.DATA_TYPE_UINT32,
+                    {:mesgType => FitContributor.MESG_TYPE_RECORD, :units => "ms"}
+                );
+            }
         }
     }
 
@@ -447,6 +487,8 @@ class RangeView extends WatchUi.View {
     function clearFitFields() as Void {
         _swingCountRecordField = null;
         _swingCountSessionField = null;
+        _lastSwingTimestampField = null;
+        _sensorLogger = null;
     }
 
     function updateHeartRate(heartRate as Number) as Void {
