@@ -16,7 +16,7 @@ class RangeView extends WatchUi.View {
     // Tune these together: threshold catches a full swing impulse, while the
     // lockout prevents one swing from being counted multiple times.
     private const SWING_THRESHOLD = 2600.0;
-    private const SWING_LOCKOUT_MS = 1500;
+    private const SWING_LOCKOUT_MS = 2000;
     private const SENSOR_WARMUP_MS = 3000;
 
     // FIT developer field numbers must be stable once public FIT files exist.
