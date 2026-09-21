@@ -156,3 +156,25 @@ java \
 
 Generated `.prg`, `.iq`, MIR, cache, and debug build artifacts are intentionally
 ignored by Git.
+
+
+## Swing Detection Debug Logging
+
+The debug data-collection branch emits one CSV-style console line for every
+high-frequency accelerometer sample:
+
+```text
+ACCEL,timestamp_ms,x_mg,y_mg,z_mg,counted
+ACCEL,123456,84,-912,1742,0
+ACCEL,123466,215,-1380,2875,1
+```
+
+The timestamp is the per-sample timestamp supplied by Garmin when available.
+X, Y, and Z are raw accelerometer axes in milli-G. The final field is `1`
+only when that sample caused the current automatic detector to increment the
+swing count; otherwise it is `0`.
+
+This logging is intended for data collection and detector tuning rather than a
+production release. Capture a range session containing known swings and
+ordinary wrist movements, then filter lines beginning with `ACCEL,` for
+analysis.
