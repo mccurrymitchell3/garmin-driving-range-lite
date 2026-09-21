@@ -160,21 +160,30 @@ ignored by Git.
 
 ## Swing Detection Debug Logging
 
-The debug data-collection branch emits one CSV-style console line for every
-high-frequency accelerometer sample:
+The debug data-collection branch records accelerometer data in two ways:
 
-```text
-ACCEL,timestamp_ms,x_mg,y_mg,z_mg,counted
-ACCEL,123456,84,-912,1742,0
-ACCEL,123466,215,-1380,2875,1
-```
+- Garmin `SensorLogging` is attached to the activity recording session so raw
+  accelerometer data is persisted in the saved FIT activity on supported
+  devices. This is the primary source for real-watch range testing.
+- `System.println()` still emits each listener sample as
+  `ACCEL,timestamp_ms,x_mg,y_mg,z_mg,counted` for simulator/device-console
+  troubleshooting.
 
-The timestamp is the per-sample timestamp supplied by Garmin when available.
-X, Y, and Z are raw accelerometer axes in milli-G. The final field is `1`
-only when that sample caused the current automatic detector to increment the
-swing count; otherwise it is `0`.
+The detector also writes a `Last Swing Sample Timestamp` developer field when
+an automatic swing is counted. Its value is the millisecond timestamp from the
+specific high-frequency sample that triggered the count. This allows exported
+FIT data to be correlated with the detector event even though ordinary FIT
+record messages are not written at sub-second frequency.
 
-This logging is intended for data collection and detector tuning rather than a
-production release. Capture a range session containing known swings and
-ordinary wrist movements, then filter lines beginning with `ACCEL,` for
-analysis.
+### Real-watch test workflow
+
+1. Install the debug build and record a normal range activity.
+2. Include both real swings and ordinary wrist movements that have caused false
+   positives.
+3. Save the activity rather than discarding it.
+4. Sync the watch to Garmin Connect.
+5. Export/download the original FIT activity file and analyze its accelerometer
+   sensor data together with `Swing Count` and `Last Swing Sample Timestamp`.
+
+Garmin's `SensorLogging` module is device-dependent. The console `ACCEL`
+logging remains in this branch as a secondary debugging path.
