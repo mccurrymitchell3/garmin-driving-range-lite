@@ -282,7 +282,8 @@ class RangeView extends WatchUi.View {
             :period => 1,
             :accelerometer => {
                 :enabled => true,
-                :sampleRate => sampleRate
+                :sampleRate => sampleRate,
+                :includeTimestamps => true
             }
         });
     }
@@ -300,6 +301,7 @@ class RangeView extends WatchUi.View {
         var xSamples = accel.x;
         var ySamples = accel.y;
         var zSamples = accel.z;
+        var timestamps = accel.timestamp;
 
         if ((xSamples == null) || (ySamples == null) || (zSamples == null)) {
             return;
@@ -312,28 +314,55 @@ class RangeView extends WatchUi.View {
         if (zSamples.size() < count) {
             count = zSamples.size();
         }
+        if ((timestamps != null) && (timestamps.size() < count)) {
+            count = timestamps.size();
+        }
 
         for (var i = 0; i < count; i++) {
-            processAccelerationSample(xSamples[i], ySamples[i], zSamples[i]);
+            var sampleTimestamp = (timestamps != null) ? timestamps[i] : System.getTimer();
+            var counted = processAccelerationSample(
+                xSamples[i],
+                ySamples[i],
+                zSamples[i],
+                sampleTimestamp
+            );
+
+            // CSV-formatted debug output makes real-device range sessions easy
+            // to copy into a spreadsheet or analysis script. "counted" is 1
+            // only for the sample that caused the automatic swing increment.
+            System.println(
+                "ACCEL," + sampleTimestamp + "," +
+                xSamples[i] + "," + ySamples[i] + "," + zSamples[i] + "," +
+                (counted ? "1" : "0")
+            );
         }
     }
 
-    function processAccelerationSample(x as Number, y as Number, z as Number) as Void {
+    function processAccelerationSample(
+        x as Number,
+        y as Number,
+        z as Number,
+        sampleTimestamp as Number
+    ) as Boolean {
         var mag = Math.sqrt((x * x) + (y * y) + (z * z));
         var now = System.getTimer();
 
         if (now < _autoDetectReadyAt) {
-            return;
+            return false;
         }
 
-        // Keep the existing peak threshold and lockout algorithm unchanged;
-        // only the input sampling frequency changes.
+        // Keep the existing peak threshold and lockout algorithm unchanged.
+        // The Garmin-provided sample timestamp is logged for analysis, while
+        // the existing system timer preserves current lockout behavior.
         if ((mag > SWING_THRESHOLD) && ((now - _lastSwingTime) > SWING_LOCKOUT_MS)) {
             _lastSwingTime = now;
             _swingCount++;
             writeFitFields();
             WatchUi.requestUpdate();
+            return true;
         }
+
+        return false;
     }
 
     function loadHeartRateZones() as Void {
