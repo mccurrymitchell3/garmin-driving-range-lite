@@ -39,6 +39,7 @@ class RangeView extends WatchUi.View {
     private var _calories as Number;
     private var _swingCount as Number;
     private var _lastSwingTime as Number;
+    private var _lastSwingSampleTimestamp as Number?;
     private var _autoDetectReadyAt as Number;
     private var _elapsedBeforePause as Number;
     private var _isPaused as Boolean;
@@ -63,6 +64,7 @@ class RangeView extends WatchUi.View {
         _calories = 0;
         _swingCount = 0;
         _lastSwingTime = 0;
+        _lastSwingSampleTimestamp = null;
         _autoDetectReadyAt = 0;
         _elapsedBeforePause = 0;
         _isPaused = false;
@@ -280,6 +282,7 @@ class RangeView extends WatchUi.View {
         // Startup and resume can produce noisy accelerometer samples; delay
         // auto-counting briefly and use this time as the first lockout anchor.
         _lastSwingTime = now;
+        _lastSwingSampleTimestamp = null;
         _autoDetectReadyAt = now + SENSOR_WARMUP_MS;
     }
 
@@ -374,11 +377,18 @@ class RangeView extends WatchUi.View {
             return false;
         }
 
-        // Keep the existing peak threshold and lockout algorithm unchanged.
-        // The Garmin-provided sample timestamp is logged for analysis, while
-        // the existing system timer preserves current lockout behavior.
-        if ((mag > SWING_THRESHOLD) && ((now - _lastSwingTime) > SWING_LOCKOUT_MS)) {
+        // Warmup remains based on the system timer because it spans app
+        // lifecycle events. Once a swing has been counted, however, lockout is
+        // measured entirely on Garmin's per-sample accelerometer timeline.
+        // This prevents one-second callback batching from distorting the
+        // interval between two high-frequency samples.
+        var outsideSampleLockout =
+            (_lastSwingSampleTimestamp == null) ||
+            ((sampleTimestamp - (_lastSwingSampleTimestamp as Number)) > SWING_LOCKOUT_MS);
+
+        if ((mag > SWING_THRESHOLD) && outsideSampleLockout) {
             _lastSwingTime = now;
+            _lastSwingSampleTimestamp = sampleTimestamp;
             _swingCount++;
             if (_lastSwingTimestampField != null) {
                 // Persist the exact high-frequency sample timestamp that caused
