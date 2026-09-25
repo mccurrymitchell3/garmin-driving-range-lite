@@ -13,9 +13,11 @@ import Toybox.UserProfile;
 import Toybox.WatchUi;
 
 class RangeView extends WatchUi.View {
-    // Tune these together: threshold catches a full swing impulse, while the
-    // lockout prevents one swing from being counted multiple times.
-    private const SWING_THRESHOLD = 2600.0;
+    // A lower-magnitude event arms a swing candidate. A subsequent stronger
+    // acceleration burst confirms the forward swing.
+    private const BACKSWING_THRESHOLD = 2500.0;
+    private const FORWARD_SWING_THRESHOLD = 5000.0;
+    private const SWING_CONFIRM_WINDOW_MS = 1500;
     private const SWING_LOCKOUT_MS = 2000;
     private const SENSOR_WARMUP_MS = 3000;
 
@@ -40,6 +42,7 @@ class RangeView extends WatchUi.View {
     private var _swingCount as Number;
     private var _lastSwingTime as Number;
     private var _lastSwingSampleTimestamp as Number?;
+    private var _swingCandidateTimestamp as Number?;
     private var _autoDetectReadyAt as Number;
     private var _elapsedBeforePause as Number;
     private var _isPaused as Boolean;
@@ -65,6 +68,7 @@ class RangeView extends WatchUi.View {
         _swingCount = 0;
         _lastSwingTime = 0;
         _lastSwingSampleTimestamp = null;
+        _swingCandidateTimestamp = null;
         _autoDetectReadyAt = 0;
         _elapsedBeforePause = 0;
         _isPaused = false;
@@ -283,6 +287,7 @@ class RangeView extends WatchUi.View {
         // auto-counting briefly and use this time as the first lockout anchor.
         _lastSwingTime = now;
         _lastSwingSampleTimestamp = null;
+        _swingCandidateTimestamp = null;
         _autoDetectReadyAt = now + SENSOR_WARMUP_MS;
     }
 
@@ -377,28 +382,47 @@ class RangeView extends WatchUi.View {
             return false;
         }
 
-        // Warmup remains based on the system timer because it spans app
-        // lifecycle events. Once a swing has been counted, however, lockout is
-        // measured entirely on Garmin's per-sample accelerometer timeline.
-        // This prevents one-second callback batching from distorting the
-        // interval between two high-frequency samples.
+        // Use Garmin's per-sample timeline for both confirmation and lockout so
+        // high-frequency samples remain correctly ordered across callback batches.
         var outsideSampleLockout =
             (_lastSwingSampleTimestamp == null) ||
             ((sampleTimestamp - (_lastSwingSampleTimestamp as Number)) > SWING_LOCKOUT_MS);
 
-        if ((mag > SWING_THRESHOLD) && outsideSampleLockout) {
+        if (!outsideSampleLockout) {
+            _swingCandidateTimestamp = null;
+            return false;
+        }
+
+        // Do not join unrelated movements: an unconfirmed candidate expires
+        // 1.5 seconds after the initial lower-magnitude motion.
+        if ((_swingCandidateTimestamp != null) &&
+            ((sampleTimestamp - (_swingCandidateTimestamp as Number)) > SWING_CONFIRM_WINDOW_MS)) {
+            _swingCandidateTimestamp = null;
+        }
+
+        // Confirm only when a later sample reaches the stronger forward-swing
+        // threshold. An isolated 5000+ mg spike cannot arm and confirm itself.
+        if ((_swingCandidateTimestamp != null) &&
+            (mag >= FORWARD_SWING_THRESHOLD)) {
             _lastSwingTime = now;
             _lastSwingSampleTimestamp = sampleTimestamp;
+            _swingCandidateTimestamp = null;
             _swingCount++;
+
             if (_lastSwingTimestampField != null) {
-                // Persist the exact high-frequency sample timestamp that caused
-                // the detector to count this swing. The FIT record itself may
-                // be written later, but the stored value remains the trigger time.
                 _lastSwingTimestampField.setData(sampleTimestamp as Object);
             }
+
             writeFitFields();
             WatchUi.requestUpdate();
             return true;
+        }
+
+        // Arm on possible backswing motion below the confirmation threshold.
+        if ((_swingCandidateTimestamp == null) &&
+            (mag >= BACKSWING_THRESHOLD) &&
+            (mag < FORWARD_SWING_THRESHOLD)) {
+            _swingCandidateTimestamp = sampleTimestamp;
         }
 
         return false;
