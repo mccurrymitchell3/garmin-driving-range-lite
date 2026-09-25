@@ -156,3 +156,34 @@ java \
 
 Generated `.prg`, `.iq`, MIR, cache, and debug build artifacts are intentionally
 ignored by Git.
+
+
+## Swing Detection Debug Logging
+
+The debug data-collection branch records accelerometer data in two ways:
+
+- Garmin `SensorLogging` is attached to the activity recording session so raw
+  accelerometer data is persisted in the saved FIT activity on supported
+  devices. This is the primary source for real-watch range testing.
+- `System.println()` still emits each listener sample as
+  `ACCEL,timestamp_ms,x_mg,y_mg,z_mg,counted` for simulator/device-console
+  troubleshooting.
+
+The detector also writes a `Last Swing Sample Timestamp` developer field when
+an automatic swing is counted. Its value is the millisecond timestamp from the
+specific high-frequency sample that triggered the count. This allows exported
+FIT data to be correlated with the detector event even though ordinary FIT
+record messages are not written at sub-second frequency.
+
+### Real-watch test workflow
+
+1. Install the debug build and record a normal range activity.
+2. Include both real swings and ordinary wrist movements that have caused false
+   positives.
+3. Save the activity rather than discarding it.
+4. Sync the watch to Garmin Connect.
+5. Export/download the original FIT activity file and analyze its accelerometer
+   sensor data together with `Swing Count` and `Last Swing Sample Timestamp`.
+
+Garmin's `SensorLogging` module is device-dependent. The console `ACCEL`
+logging remains in this branch as a secondary debugging path.

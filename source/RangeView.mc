@@ -5,6 +5,7 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
 import Toybox.Sensor;
+import Toybox.SensorLogging;
 import Toybox.System;
 import Toybox.Time;
 import Toybox.Timer;
@@ -12,19 +13,24 @@ import Toybox.UserProfile;
 import Toybox.WatchUi;
 
 class RangeView extends WatchUi.View {
-    // Tune these together: threshold catches a full swing impulse, while the
-    // lockout prevents one swing from being counted multiple times.
-    private const SWING_THRESHOLD = 2600.0;
-    private const SWING_LOCKOUT_MS = 1500;
+    // A lower-magnitude event arms a swing candidate. A subsequent stronger
+    // acceleration burst confirms the forward swing.
+    private const BACKSWING_THRESHOLD = 2500.0;
+    private const FORWARD_SWING_THRESHOLD = 5000.0;
+    private const SWING_CONFIRM_WINDOW_MS = 1500;
+    private const SWING_LOCKOUT_MS = 2000;
     private const SENSOR_WARMUP_MS = 3000;
 
     // FIT developer field numbers must be stable once public FIT files exist.
     private const FIT_FIELD_SWING_COUNT_RECORD = 0;
     private const FIT_FIELD_SWING_COUNT_SESSION = 1;
+    private const FIT_FIELD_LAST_SWING_TIMESTAMP = 2;
 
     private var _session as Session?;
     private var _swingCountRecordField as Field?;
     private var _swingCountSessionField as Field?;
+    private var _lastSwingTimestampField as Field?;
+    private var _sensorLogger;
     private var _timer as Timer.Timer?;
     private var _startTime as Moment?;
     private var _heartRate as Number;
@@ -35,6 +41,8 @@ class RangeView extends WatchUi.View {
     private var _calories as Number;
     private var _swingCount as Number;
     private var _lastSwingTime as Number;
+    private var _lastSwingSampleTimestamp as Number?;
+    private var _swingCandidateTimestamp as Number?;
     private var _autoDetectReadyAt as Number;
     private var _elapsedBeforePause as Number;
     private var _isPaused as Boolean;
@@ -47,6 +55,8 @@ class RangeView extends WatchUi.View {
         _session = null;
         _swingCountRecordField = null;
         _swingCountSessionField = null;
+        _lastSwingTimestampField = null;
+        _sensorLogger = null;
         _timer = null;
         _startTime = null;
         _heartRate = 0;
@@ -57,6 +67,8 @@ class RangeView extends WatchUi.View {
         _calories = 0;
         _swingCount = 0;
         _lastSwingTime = 0;
+        _lastSwingSampleTimestamp = null;
+        _swingCandidateTimestamp = null;
         _autoDetectReadyAt = 0;
         _elapsedBeforePause = 0;
         _isPaused = false;
@@ -98,11 +110,28 @@ class RangeView extends WatchUi.View {
         // ActivityRecording may not exist on every API/runtime, so guard it
         // before creating the FIT session.
         if ((Toybox has :ActivityRecording) && (_session == null)) {
-            _session = ActivityRecording.createSession({
+            // SensorLogger persists raw accelerometer data in the activity FIT
+            // file on devices that support Garmin's SensorLogging module.
+            if (Toybox has :SensorLogging) {
+                _sensorLogger = new SensorLogging.SensorLogger({
+                    :accelerometer => {
+                        :enabled => true
+                    },
+                    :synchronous => false
+                });
+            }
+
+            var sessionOptions = {
                 :name => "Range",
                 :sport => Activity.SPORT_GOLF,
                 :subSport => Activity.SUB_SPORT_GENERIC
-            });
+            };
+
+            if (_sensorLogger != null) {
+                sessionOptions[:sensorLogger] = _sensorLogger;
+            }
+
+            _session = ActivityRecording.createSession(sessionOptions);
             _session.start();
             createFitFields();
         }
@@ -257,6 +286,8 @@ class RangeView extends WatchUi.View {
         // Startup and resume can produce noisy accelerometer samples; delay
         // auto-counting briefly and use this time as the first lockout anchor.
         _lastSwingTime = now;
+        _lastSwingSampleTimestamp = null;
+        _swingCandidateTimestamp = null;
         _autoDetectReadyAt = now + SENSOR_WARMUP_MS;
     }
 
@@ -282,7 +313,8 @@ class RangeView extends WatchUi.View {
             :period => 1,
             :accelerometer => {
                 :enabled => true,
-                :sampleRate => sampleRate
+                :sampleRate => sampleRate,
+                :includeTimestamps => true
             }
         });
     }
@@ -300,6 +332,7 @@ class RangeView extends WatchUi.View {
         var xSamples = accel.x;
         var ySamples = accel.y;
         var zSamples = accel.z;
+        var timestamps = accel.timestamp;
 
         if ((xSamples == null) || (ySamples == null) || (zSamples == null)) {
             return;
@@ -312,28 +345,87 @@ class RangeView extends WatchUi.View {
         if (zSamples.size() < count) {
             count = zSamples.size();
         }
+        if ((timestamps != null) && (timestamps.size() < count)) {
+            count = timestamps.size();
+        }
 
         for (var i = 0; i < count; i++) {
-            processAccelerationSample(xSamples[i], ySamples[i], zSamples[i]);
+            var sampleTimestamp = (timestamps != null) ? timestamps[i] : System.getTimer();
+            var counted = processAccelerationSample(
+                xSamples[i],
+                ySamples[i],
+                zSamples[i],
+                sampleTimestamp
+            );
+
+            // CSV-formatted debug output makes real-device range sessions easy
+            // to copy into a spreadsheet or analysis script. "counted" is 1
+            // only for the sample that caused the automatic swing increment.
+            System.println(
+                "ACCEL," + sampleTimestamp + "," +
+                xSamples[i] + "," + ySamples[i] + "," + zSamples[i] + "," +
+                (counted ? "1" : "0")
+            );
         }
     }
 
-    function processAccelerationSample(x as Number, y as Number, z as Number) as Void {
+    function processAccelerationSample(
+        x as Number,
+        y as Number,
+        z as Number,
+        sampleTimestamp as Number
+    ) as Boolean {
         var mag = Math.sqrt((x * x) + (y * y) + (z * z));
         var now = System.getTimer();
 
         if (now < _autoDetectReadyAt) {
-            return;
+            return false;
         }
 
-        // Keep the existing peak threshold and lockout algorithm unchanged;
-        // only the input sampling frequency changes.
-        if ((mag > SWING_THRESHOLD) && ((now - _lastSwingTime) > SWING_LOCKOUT_MS)) {
+        // Use Garmin's per-sample timeline for both confirmation and lockout so
+        // high-frequency samples remain correctly ordered across callback batches.
+        var outsideSampleLockout =
+            (_lastSwingSampleTimestamp == null) ||
+            ((sampleTimestamp - (_lastSwingSampleTimestamp as Number)) > SWING_LOCKOUT_MS);
+
+        if (!outsideSampleLockout) {
+            _swingCandidateTimestamp = null;
+            return false;
+        }
+
+        // Do not join unrelated movements: an unconfirmed candidate expires
+        // 1.5 seconds after the initial lower-magnitude motion.
+        if ((_swingCandidateTimestamp != null) &&
+            ((sampleTimestamp - (_swingCandidateTimestamp as Number)) > SWING_CONFIRM_WINDOW_MS)) {
+            _swingCandidateTimestamp = null;
+        }
+
+        // Confirm only when a later sample reaches the stronger forward-swing
+        // threshold. An isolated 5000+ mg spike cannot arm and confirm itself.
+        if ((_swingCandidateTimestamp != null) &&
+            (mag >= FORWARD_SWING_THRESHOLD)) {
             _lastSwingTime = now;
+            _lastSwingSampleTimestamp = sampleTimestamp;
+            _swingCandidateTimestamp = null;
             _swingCount++;
+
+            if (_lastSwingTimestampField != null) {
+                _lastSwingTimestampField.setData(sampleTimestamp as Object);
+            }
+
             writeFitFields();
             WatchUi.requestUpdate();
+            return true;
         }
+
+        // Arm on possible backswing motion below the confirmation threshold.
+        if ((_swingCandidateTimestamp == null) &&
+            (mag >= BACKSWING_THRESHOLD) &&
+            (mag < FORWARD_SWING_THRESHOLD)) {
+            _swingCandidateTimestamp = sampleTimestamp;
+        }
+
+        return false;
     }
 
     function loadHeartRateZones() as Void {
@@ -402,6 +494,17 @@ class RangeView extends WatchUi.View {
                     {:mesgType => FitContributor.MESG_TYPE_SESSION, :units => "swings"}
                 );
             }
+
+            // Debug marker used to correlate an automatic count with the raw
+            // accelerometer stream after exporting the original FIT file.
+            if (_lastSwingTimestampField == null) {
+                _lastSwingTimestampField = session.createField(
+                    "Last Swing Sample Timestamp",
+                    FIT_FIELD_LAST_SWING_TIMESTAMP,
+                    FitContributor.DATA_TYPE_UINT32,
+                    {:mesgType => FitContributor.MESG_TYPE_RECORD, :units => "ms"}
+                );
+            }
         }
     }
 
@@ -418,6 +521,8 @@ class RangeView extends WatchUi.View {
     function clearFitFields() as Void {
         _swingCountRecordField = null;
         _swingCountSessionField = null;
+        _lastSwingTimestampField = null;
+        _sensorLogger = null;
     }
 
     function updateHeartRate(heartRate as Number) as Void {
