@@ -21,15 +21,13 @@ simple sensor-based swing counting.
 - Uses `Start`/`Enter`/`Menu` to pause, resume, save, or discard.
 - Adds a cumulative swing-count chart and final swing total to the synced
   activity in Garmin Connect.
-- Shows a five-page saved-activity recap for swings, calories, heart rate,
-  training effect, and duration.
+- Shows a single-screen saved-activity recap for swings, duration, and calories.
 
 ## Controls
 
 - `Start`, `Enter`, or `Menu`: open the pause menu.
 - `Up`: add one swing.
 - `Down`: subtract one swing, stopping at zero.
-- Summary screen `Up`/`Down`: move through recap pages.
 - Summary screen select/back/menu: exit the app.
 
 Screen taps, holds, releases, swipes, and the back button are consumed during
@@ -77,7 +75,7 @@ Strava.
   detection, FIT fields, and main UI.
 - `source/RangeDelegate.mc`: in-activity input handling.
 - `source/RangeMenuDelegate.mc`: pause menu actions.
-- `source/RangeSummaryView.mc`: saved-activity recap pages.
+- `source/RangeSummaryView.mc`: single-screen saved-activity recap.
 - `build.sh`: local helper for building a device `.prg`.
 
 ## Requirements
