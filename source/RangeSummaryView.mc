@@ -21,13 +21,9 @@ class RangeSummaryView extends WatchUi.View {
 
         var width = dc.getWidth();
         var height = dc.getHeight();
-        var centerX = width / 2;
 
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(0, 0, width, height);
-
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(centerX, (height * 8) / 100, Graphics.FONT_SMALL, "SAVED", Graphics.TEXT_JUSTIFY_CENTER);
 
         // Use one metric per page to keep the saved recap readable on small
         // round and square Garmin displays.
