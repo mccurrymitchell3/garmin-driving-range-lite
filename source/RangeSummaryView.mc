@@ -33,41 +33,41 @@ class RangeSummaryView extends WatchUi.View {
         }
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(centerX, (height * 22) / 100, titleFont, "Driving Range", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX, (height * 20) / 100, titleFont, "Driving Range", Graphics.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(2);
-        dc.drawLine((width * 10) / 100, (height * 36) / 100, (width * 90) / 100, (height * 36) / 100);
+        dc.drawLine((width * 10) / 100, (height * 34) / 100, (width * 90) / 100, (height * 34) / 100);
         dc.setPenWidth(1);
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             centerX,
-            (height * 48) / 100,
+            (height * 46) / 100,
             Graphics.FONT_NUMBER_MEDIUM,
             (_summary[:swingCount] as Number).toString(),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
         );
-        dc.drawText(centerX, (height * 57) / 100, Graphics.FONT_SMALL, "Swings", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX, (height * 55) / 100, Graphics.FONT_SMALL, "Swings", Graphics.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(2);
-        dc.drawLine((width * 10) / 100, (height * 71) / 100, (width * 90) / 100, (height * 71) / 100);
-        dc.drawLine(centerX, (height * 71) / 100, centerX, (height * 97) / 100);
+        dc.drawLine((width * 10) / 100, (height * 69) / 100, (width * 90) / 100, (height * 69) / 100);
+        dc.drawLine(centerX, (height * 69) / 100, centerX, (height * 97) / 100);
         dc.setPenWidth(1);
 
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText((width * 31) / 100, (height * 73) / 100, Graphics.FONT_XTINY, "Time", Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText((width * 69) / 100, (height * 73) / 100, Graphics.FONT_XTINY, "Calories", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText((width * 31) / 100, (height * 71) / 100, Graphics.FONT_XTINY, "Time", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText((width * 69) / 100, (height * 71) / 100, Graphics.FONT_XTINY, "Calories", Graphics.TEXT_JUSTIFY_CENTER);
 
         var duration = formatDuration(_summary[:elapsedSeconds] as Number);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        if (dc.getTextWidthInPixels(duration, Graphics.FONT_NUMBER_MEDIUM) > (width * 34) / 100) {
-            dc.drawText((width * 31) / 100, (height * 79) / 100, Graphics.FONT_SMALL, duration, Graphics.TEXT_JUSTIFY_CENTER);
+        if (dc.getTextWidthInPixels(duration, Graphics.FONT_NUMBER_MEDIUM) > (width * 80) / 100) {
+            dc.drawText((width * 31) / 100, (height * 78) / 100, Graphics.FONT_XTINY, duration, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.drawText((width * 31) / 100, (height * 79) / 100, Graphics.FONT_NUMBER_MEDIUM, duration, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText((width * 31) / 100, (height * 78) / 100, Graphics.FONT_SMALL, duration, Graphics.TEXT_JUSTIFY_CENTER);
         }
-        dc.drawText((width * 69) / 100, (height * 80) / 100, Graphics.FONT_SMALL, (_summary[:calories] as Number).toString(), Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText((width * 69) / 100, (height * 78) / 100, Graphics.FONT_SMALL, (_summary[:calories] as Number).toString(), Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     function formatDuration(elapsed as Number) as String {
