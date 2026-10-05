@@ -577,9 +577,7 @@ class RangeView extends WatchUi.View {
         var centerX = width / 2;
 
         var elapsedSec = getElapsedSeconds();
-        var minutes = elapsedSec / 60;
-        var seconds = elapsedSec % 60;
-        var timeStr = minutes.format("%02d") + ":" + seconds.format("%02d");
+        var timeStr = formatDuration(elapsedSec);
         var hrStr = (_heartRate > 0) ? _heartRate.toString() : "--";
 
         drawHrGauge(dc, width, height);
@@ -589,7 +587,11 @@ class RangeView extends WatchUi.View {
         dc.drawText(centerX, (height * 7) / 100, Graphics.FONT_XTINY, "TIMER", Graphics.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(centerX, (height * 15) / 100, Graphics.FONT_LARGE, timeStr, Graphics.TEXT_JUSTIFY_CENTER);
+        if (dc.getTextWidthInPixels(timeStr, Graphics.FONT_LARGE) > (width * 80) / 100) {
+            dc.drawText(centerX, (height * 15) / 100, Graphics.FONT_SMALL, timeStr, Graphics.TEXT_JUSTIFY_CENTER);
+        } else {
+            dc.drawText(centerX, (height * 15) / 100, Graphics.FONT_LARGE, timeStr, Graphics.TEXT_JUSTIFY_CENTER);
+        }
 
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText((width * 25) / 100, (height * 35) / 100, Graphics.FONT_XTINY, "SWINGS", Graphics.TEXT_JUSTIFY_CENTER);
@@ -605,6 +607,18 @@ class RangeView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(centerX, (height * 72) / 100, Graphics.FONT_LARGE, hrStr, Graphics.TEXT_JUSTIFY_CENTER);
 
+    }
+
+    function formatDuration(elapsed as Number) as String {
+        var hours = elapsed / 3600;
+        var minutes = (elapsed % 3600) / 60;
+        var seconds = elapsed % 60;
+
+        if (hours > 0) {
+            return hours.format("%d") + ":" + minutes.format("%02d") + ":" + seconds.format("%02d");
+        }
+
+        return minutes.format("%02d") + ":" + seconds.format("%02d");
     }
 
     function drawActivityGrid(dc as Dc, width as Number, height as Number) as Void {

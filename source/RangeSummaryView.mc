@@ -62,8 +62,8 @@ class RangeSummaryView extends WatchUi.View {
 
         var duration = formatDuration(_summary[:elapsedSeconds] as Number);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        if (dc.getTextWidthInPixels(duration, Graphics.FONT_NUMBER_MEDIUM) > (width * 80) / 100) {
-            dc.drawText((width * 31) / 100, (height * 78) / 100, Graphics.FONT_XTINY, duration, Graphics.TEXT_JUSTIFY_CENTER);
+        if (dc.getTextWidthInPixels(duration, Graphics.FONT_SMALL) > (width * 31) / 100) {
+            dc.drawText((width * 31) / 100, (height * 80) / 100, Graphics.FONT_XTINY, duration, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.drawText((width * 31) / 100, (height * 78) / 100, Graphics.FONT_SMALL, duration, Graphics.TEXT_JUSTIFY_CENTER);
         }
