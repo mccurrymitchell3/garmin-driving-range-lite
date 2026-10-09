@@ -1,0 +1,4 @@
+project.manifest = manifest-beta.xml
+
+# Beta uses the exact same app code but swaps in the instrumented diagnostics implementation.
+base.excludeAnnotations = production

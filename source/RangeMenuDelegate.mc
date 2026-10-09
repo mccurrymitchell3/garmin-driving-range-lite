@@ -22,10 +22,10 @@ class RangeMenuDelegate extends WatchUi.Menu2InputDelegate {
             _view.setOptionsOpen(false);
             _view.saveActivity();
 
-            // Capture the completed activity metrics in a separate summary view
-            // after Garmin has saved the FIT session.
-            var summaryView = new $.RangeSummaryView(_view.getSummary());
-            WatchUi.switchToView(summaryView, new $.RangeSummaryDelegate(summaryView), WatchUi.SLIDE_UP);
+            // Confirm the completed save before showing the activity recap.
+            // RangeSavedView advances automatically to the existing summary.
+            var savedView = new $.RangeSavedView(_view.getSummary());
+            WatchUi.switchToView(savedView, new $.RangeSavedDelegate(), WatchUi.SLIDE_IMMEDIATE);
         } else if (id == :discard) {
             _view.setOptionsOpen(false);
             _view.discardActivity();
