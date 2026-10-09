@@ -1,1 +1,4 @@
 project.manifest = manifest.xml
+
+# Production keeps the common detector/UI code and excludes beta-only diagnostics.
+base.excludeAnnotations = beta
