@@ -1,4 +1,6 @@
 <drawables xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <!-- Launcher icon resource referenced by manifest.xml. -->
     <bitmap id="LauncherIcon" filename="launcher_icon.svg" dithering="none" />
+    <!-- Compact transparent icon used by the post-activity summary. -->
+    <bitmap id="GolferIcon" filename="golfer_icon.svg" dithering="none" />
 </drawables>

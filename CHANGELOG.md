@@ -5,6 +5,22 @@ file.
 
 The project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-11-24
+
+### Added
+
+- Animated activity save confirmation.
+- Dedicated beta build with accelerometer diagnostics and FIT debug logging.
+
+### Changed
+
+- Increased accelerometer sampling frequency up to 100 Hz while retaining the 500 ms UI timer.
+- Improved automatic swing detection using a two-stage acceleration pattern and per-sample timestamps.
+- Increased swing cooldown to two seconds to reduce duplicate counts.
+- Redesigned the post-activity summary with swing count, duration, and calories.
+- Improved duration formatting for activities exceeding one hour.
+- Separated production and beta diagnostics while maintaining a shared application codebase.
+
 ## [1.0.0] - 2026-09-18
 
 ### Added
@@ -21,4 +37,5 @@ The project uses [Semantic Versioning](https://semver.org/).
 - Support for selected Garmin Forerunner, Fenix, Epix, Enduro, Instinct, Venu,
   and vivoactive devices.
 
+[1.1.0]: https://github.com/mccurrymitchell3/garmin-driving-range-lite/releases/tag/v1.1.0
 [1.0.0]: https://github.com/mccurrymitchell3/garmin-driving-range-lite/releases/tag/v1.0.0
