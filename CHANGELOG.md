@@ -5,19 +5,21 @@ file.
 
 The project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0] - 2026-11-24
+
+### Added
+
+- Animated activity save confirmation.
+- Dedicated beta build with accelerometer diagnostics and FIT debug logging.
 
 ### Changed
 
-- Swing detection now consumes Garmin's high-frequency accelerometer batches at
-  the fastest device-supported sample rate, capped at 100 Hz, instead of polling
-  a single accelerometer reading from the UI timer.
-- The 500 ms UI/activity timer remains separate from high-frequency swing
-  sampling so display, heart-rate, calorie, and FIT refresh work does not run at
-  the accelerometer sample rate.
-- The existing swing magnitude threshold, 1.5-second lockout, and 3-second
-  startup/resume warmup remain unchanged so sampling frequency can be evaluated
-  independently.
+- Increased accelerometer sampling frequency up to 100 Hz while retaining the 500 ms UI timer.
+- Improved automatic swing detection using a two-stage acceleration pattern and per-sample timestamps.
+- Increased swing cooldown to two seconds to reduce duplicate counts.
+- Redesigned the post-activity summary with swing count, duration, and calories.
+- Improved duration formatting for activities exceeding one hour.
+- Separated production and beta diagnostics while maintaining a shared application codebase.
 
 ## [1.0.0] - 2026-09-18
 
@@ -30,8 +32,10 @@ The project uses [Semantic Versioning](https://semver.org/).
 - Pause, resume, save, and discard controls.
 - Garmin Connect integration with a cumulative swing-count chart and final
   swing count in the activity summary.
-- Single-screen post-activity summary for swings, duration, and calories.
+- Five-page post-activity summary for swings, calories, heart rate, training
+  effect, and duration.
 - Support for selected Garmin Forerunner, Fenix, Epix, Enduro, Instinct, Venu,
   and vivoactive devices.
 
+[1.1.0]: https://github.com/mccurrymitchell3/garmin-driving-range-lite/releases/tag/v1.1.0
 [1.0.0]: https://github.com/mccurrymitchell3/garmin-driving-range-lite/releases/tag/v1.0.0
