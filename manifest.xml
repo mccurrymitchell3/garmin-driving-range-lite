@@ -39,14 +39,13 @@
             <iq:product id="venu3s"/>
             <iq:product id="vivoactive5"/>
         </iq:products>
-        <!-- FIT recording, custom FIT fields, live sensors, and user HR zones. -->
+        <!-- Production only requests permissions used by shipped behavior. -->
         <iq:permissions>
             <iq:uses-permission id="Fit"/>
             <iq:uses-permission id="FitContributor"/>
             <iq:uses-permission id="Sensor"/>
             <iq:uses-permission id="UserProfile"/>
         </iq:permissions>
-        <!-- English-only for the first free public release. -->
         <iq:languages>
             <iq:language>eng</iq:language>
         </iq:languages>

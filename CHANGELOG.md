@@ -30,8 +30,7 @@ The project uses [Semantic Versioning](https://semver.org/).
 - Pause, resume, save, and discard controls.
 - Garmin Connect integration with a cumulative swing-count chart and final
   swing count in the activity summary.
-- Five-page post-activity summary for swings, calories, heart rate, training
-  effect, and duration.
+- Single-screen post-activity summary for swings, duration, and calories.
 - Support for selected Garmin Forerunner, Fenix, Epix, Enduro, Instinct, Venu,
   and vivoactive devices.
 
