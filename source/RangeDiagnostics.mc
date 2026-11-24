@@ -1,4 +1,5 @@
 import Toybox.FitContributor;
+import Toybox.Lang;
 import Toybox.SensorLogging;
 import Toybox.System;
 

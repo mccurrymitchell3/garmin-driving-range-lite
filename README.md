@@ -66,17 +66,22 @@ Strava.
 ## Project Layout
 
 - `manifest.xml`: Connect IQ app metadata, supported devices, and permissions.
-- `monkey.jungle`: Garmin project file.
+- `manifest-beta.xml`: beta manifest with the additional `SensorLogging`
+  permission.
+- `monkey.jungle`: production Garmin project file.
+- `monkey-beta.jungle`: beta project file that selects instrumented diagnostics.
 - `img/`: screenshots and artwork used by this README and the store listing.
 - `resources/fitfields.xml`: Garmin Connect chart and activity-summary metadata.
 - `resources/`: app strings, drawables, and launcher icon.
 - `source/RangeApp.mc`: app entry point and lifecycle bridge.
 - `source/RangeView.mc`: activity recording, high-frequency accelerometer swing
   detection, FIT fields, and main UI.
+- `source/RangeDiagnostics.mc`: build-selected production and beta diagnostics.
 - `source/RangeDelegate.mc`: in-activity input handling.
 - `source/RangeMenuDelegate.mc`: pause menu actions.
 - `source/RangeSummaryView.mc`: single-screen saved-activity recap.
 - `build.sh`: local helper for building a device `.prg`.
+- `build-beta.sh`: local helper for building the instrumented beta `.prg`.
 
 ## Requirements
 
@@ -110,10 +115,26 @@ Build for another device listed in `manifest.xml`:
 ./build.sh fr965
 ```
 
+Build the instrumented beta for Forerunner 265:
+
+```sh
+./build-beta.sh
+```
+
+The production build uses `monkey.jungle` and `manifest.xml`. The beta build
+uses `monkey-beta.jungle` and `manifest-beta.xml`; both compile the same app and
+swing detector, but select different diagnostics implementations. The beta
+manifest matches the production products and adds this permission:
+
+```xml
+<iq:uses-permission id="SensorLogging"/>
+```
+
 The script writes the `.prg` to `/private/tmp` by default:
 
 ```sh
 /private/tmp/driving-range-fr265.prg
+/private/tmp/driving-range-beta-fr265.prg
 ```
 
 On this macOS/JDK setup, Garmin's `monkeyc` shell wrapper can abort while
@@ -155,10 +176,9 @@ java \
 Generated `.prg`, `.iq`, MIR, cache, and debug build artifacts are intentionally
 ignored by Git.
 
-
 ## Swing Detection Debug Logging
 
-The debug data-collection branch records accelerometer data in two ways:
+The beta build records accelerometer data in two ways:
 
 - Garmin `SensorLogging` is attached to the activity recording session so raw
   accelerometer data is persisted in the saved FIT activity on supported
@@ -175,7 +195,7 @@ record messages are not written at sub-second frequency.
 
 ### Real-watch test workflow
 
-1. Install the debug build and record a normal range activity.
+1. Install the beta build and record a normal range activity.
 2. Include both real swings and ordinary wrist movements that have caused false
    positives.
 3. Save the activity rather than discarding it.
@@ -185,3 +205,7 @@ record messages are not written at sub-second frequency.
 
 Garmin's `SensorLogging` module is device-dependent. The console `ACCEL`
 logging remains in this branch as a secondary debugging path.
+
+These diagnostics are excluded from the production build. Production neither
+requests the `SensorLogging` permission nor creates a sensor logger, emits
+per-sample `ACCEL` console records, or adds the diagnostic timestamp FIT field.
